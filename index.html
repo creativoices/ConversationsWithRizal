@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dr. Jose Rizal Chatbot</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #f4f4f4;
+        }
+        .chat-container {
+            width: 400px;
+            background: white;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+        .chat-header {
+            background: #0056b3;
+            color: white;
+            padding: 10px;
+            text-align: center;
+            font-size: 18px;
+        }
+        .chat-body {
+            max-height: 400px;
+            overflow-y: auto;
+            padding: 10px;
+        }
+        .chat-footer {
+            display: flex;
+            padding: 10px;
+            border-top: 1px solid #ccc;
+        }
+        .chat-footer input {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        .chat-footer button {
+            margin-left: 10px;
+            padding: 10px 15px;
+            background: #0056b3;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .chat-footer button:hover {
+            background: #004080;
+        }
+        .message {
+            margin: 10px 0;
+        }
+        .message.user {
+            text-align: right;
+        }
+        .message.bot {
+            text-align: left;
+        }
+        .message p {
+            display: inline-block;
+            padding: 10px;
+            border-radius: 12px;
+            max-width: 70%;
+        }
+        .message.user p {
+            background: #0056b3;
+            color: white;
+        }
+        .message.bot p {
+            background: #f4f4f4;
+            color: #333;
+        }
+    </style>
+</head>
+<body>
+
+<div class="chat-container">
+    <div class="chat-header">Dr. Jose Rizal Chatbot</div>
+    <div class="chat-body" id="chatBody"></div>
+    <div class="chat-footer">
+        <input type="text" id="userInput" placeholder="Ask Dr. Jose Rizal...">
+        <button onclick="sendMessage()">Send</button>
+    </div>
+</div>
+
+<script>
+    const chatBody = document.getElementById('chatBody');
+    const userInput = document.getElementById('userInput');
+
+    const chatHistory = [
+        { role: "bot", text: "Hello! I am Dr. Jose Rizal. Ask me anything about my life, works, or legacy." }
+    ];
+
+    function updateChat() {
+        chatBody.innerHTML = chatHistory.map(entry => {
+            const roleClass = entry.role === "user" ? "user" : "bot";
+            return `<div class="message ${roleClass}"><p>${entry.text}</p></div>`;
+        }).join('');
+        chatBody.scrollTop = chatBody.scrollHeight;
+    }
+
+    async function sendMessage() {
+        const userMessage = userInput.value.trim();
+        if (!userMessage) return;
+
+        chatHistory.push({ role: "user", text: userMessage });
+        userInput.value = '';
+        updateChat();
+
+        const botResponse = await fetchChatGPTResponse(userMessage);
+        chatHistory.push({ role: "bot", text: botResponse });
+        updateChat();
+    }
+
+    async function fetchChatGPTResponse(message) {
+        const response = await fetch('https://api.openai.com/v1/chat/completions', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer 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'
+            },
+            body: JSON.stringify({
+                model: "gpt-4",
+                messages: [
+                    { role: "system", content: "You are Dr. Jose Rizal, a Filipino nationalist and reformist." },
+                    { role: "user", content: message }
+                ]
+            })
+        });
+        const data = await response.json();
+        return data.choices[0].message.content;
+    }
+
+    // Initial render
+    updateChat();
+</script>
+
+</body>
+</html>
